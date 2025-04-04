@@ -3,11 +3,8 @@ package main
 import (
 	"path/filepath"
 
-	"github.com/jung-kurt/gofpdf" 
+	"github.com/jung-kurt/gofpdf"
 )
-
-// func drawGrid(pdf *gofpdf.Fpdf, x, y, size float64) {
-// }
 
 func main() {
 	pdf := gofpdf.New("P", "mm", "A4", "")
@@ -33,7 +30,8 @@ func main() {
 	}
 
 	for _, item := range data {
-		// English text
+		// Set text color to black for English text
+		pdf.SetTextColor(0, 0, 0)
 		pdf.SetFont("Arial", "B", 12)
 		pdf.SetXY(x, y)
 		pdf.CellFormat(0, 10, item.English, "", 1, "L", false, 0, "")
@@ -41,13 +39,15 @@ func main() {
 		for i, pinyin := range item.Pinyin {
 			xPos := x + float64(i)*(boxSize+2)
 
-			// Pinyin text
+			// Set text color to black for Pinyin text
+			pdf.SetTextColor(0, 0, 0)
 			pdf.SetFont("YaHei", "", 12)
 			pdf.SetXY(xPos, y+12)
 			pdf.CellFormat(boxSize, 10, pinyin, "1", 0, "C", false, 0, "")
 
-			// Chinese character
-			pdf.SetFont("YaHei", "", 20)
+			// Set light grey color for Chinese characters
+			pdf.SetTextColor(200, 200, 200)
+			pdf.SetFont("YaHei", "", 60)
 			pdf.SetXY(xPos, y+22)
 			pdf.CellFormat(boxSize, boxSize, item.Chinese[i], "1", 0, "C", false, 0, "")
 		}
