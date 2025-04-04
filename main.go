@@ -1,9 +1,8 @@
 package main
 
 import (
-	"path/filepath"
-
 	"github.com/jung-kurt/gofpdf"
+	"path/filepath"
 )
 
 type LanguageData struct {
@@ -13,7 +12,9 @@ type LanguageData struct {
 }
 
 func main() {
-	pdf := setupPDF()
+	useCalligraphyFont := true
+
+	pdf := setupPDF(useCalligraphyFont)
 	data := getLanguageData()
 
 	x, y := 20.0, 20.0
@@ -21,7 +22,7 @@ func main() {
 
 	for _, item := range data {
 		addEnglishText(pdf, item.English, x, y)
-		addPinyinAndChinese(pdf, item.Pinyin, item.Chinese, x, y, boxSize)
+		addPinyinAndChinese(pdf, item.Pinyin, item.Chinese, x, y, boxSize, useCalligraphyFont)
 		y += boxSize + 35
 	}
 
@@ -30,13 +31,21 @@ func main() {
 	}
 }
 
-func setupPDF() *gofpdf.Fpdf {
+func setupPDF(useCalligraphyFont bool) *gofpdf.Fpdf {
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
 
 	fontDir := "/fonts"
-	fontFile := "chinese.msyh.ttf"
-	pdf.AddUTF8Font("YaHei", "", filepath.Join(fontDir, fontFile))
+	defaultFontFile := "chinese.msyh.ttf"
+	calligraphyFontFile := "simsun.ttf"
+
+	// Load the default font
+	pdf.AddUTF8Font("YaHei", "", filepath.Join(fontDir, defaultFontFile))
+
+	// Load the calligraphy font if needed
+	if useCalligraphyFont {
+		pdf.AddUTF8Font("Calligraphy", "", filepath.Join(fontDir, calligraphyFontFile))
+	}
 
 	return pdf
 }
@@ -57,11 +66,10 @@ func addEnglishText(pdf *gofpdf.Fpdf, text string, x, y float64) {
 	pdf.CellFormat(0, 10, text, "", 1, "L", false, 0, "")
 }
 
-func addPinyinAndChinese(pdf *gofpdf.Fpdf, pinyin, chinese []string, x, y, boxSize float64) {
+func addPinyinAndChinese(pdf *gofpdf.Fpdf, pinyin, chinese []string, x, y, boxSize float64, useCalligraphyFont bool) {
 	pageWidth, _ := pdf.GetPageSize()
 	marginLeft, _, marginRight, _ := pdf.GetMargins()
 	usableWidth := pageWidth - marginLeft - marginRight
-	// Calculate how many boxes fit in the usable width
 	numBoxes := int(usableWidth / (boxSize + 2))
 
 	for i := 0; i < numBoxes; i++ {
@@ -78,7 +86,11 @@ func addPinyinAndChinese(pdf *gofpdf.Fpdf, pinyin, chinese []string, x, y, boxSi
 		// Add Chinese characters if available
 		if i < len(chinese) {
 			pdf.SetTextColor(200, 200, 200)
-			pdf.SetFont("YaHei", "", 40)
+			if useCalligraphyFont {
+				pdf.SetFont("Calligraphy", "", 40)
+			} else {
+				pdf.SetFont("YaHei", "", 40)
+			}
 			pdf.SetXY(xPos, y+22)
 			pdf.CellFormat(boxSize, boxSize, chinese[i], "1", 0, "C", false, 0, "")
 		} else {
